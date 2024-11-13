@@ -1,7 +1,11 @@
 open Raylib
 let w = 800
 let h = 600
-let dt = 1.0 /. 60.0
+let c = 0.1
+let rcercle = 20
+let dt = 20.0 /. 60.0
+let dx = 0.5
+let dy = 0.5
 
 type status = {
     t : float Grid.t ;
@@ -19,16 +23,36 @@ let draw st =
         ) t ;
   end_drawing ()
 
+
+let nabla t (x,y) =
+    let dx2 = Grid.get t (x+1) y
+        -. 2.0 *. Grid.get t (x) y
+        +. Grid.get t (x-1) y
+    in
+    let dy2 = Grid.get t x (y+1)
+        -. 2.0 *. Grid.get t x (y)
+        +. Grid.get t x (y-1)
+    in dx2 /. (dx**2.0) +. dy2 /. (dy**2.0)
+
+let clamp v l t =
+    max (min v t) l
+
+let dist (x1,y1) (x2,y2) = (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)
+
 let update {t;time} =
     let t' = Grid.mapi (fun pos v ->
         let vois_values = Grid.vois_value pos t in
-        let sum = List.fold_left (+.) 0. vois_values in
-        let count = List.length vois_values in
-        v +. (sum /. float count) *. dt
+        c *. dt *. (nabla t pos) *. dt +. v
     ) t
     in
-    Grid.set t' (w/20) (h/20) 1.0;
-    let time' = time +. dt in
+    Grid.iteri (fun (x,y) _ ->
+        let d = dist (x,y) (w/20,h/20) in
+        if d < rcercle then
+            Grid.set t' x y ((1.0 +. cos time) /. 2.0)
+    ) t;
+    (*(1.0 +. cos time) /. 2.0*)
+
+    let time' = time +. 0.01 in
     {t = t'; time = time'}
 
 let mingrid t = Grid.fold_left min 1.0 t

@@ -32,3 +32,9 @@ let fold_left f v0 grid =
 
 let set t x y v =
     t.(x).(y) <- v
+
+let get t ?(default=0.0) x y =
+    if x < 0 || x >= Array.length t || y < 0 || y >= Array.length t.(0) then
+        default
+    else
+        t.(x).(y)
