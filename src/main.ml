@@ -25,13 +25,14 @@ let draw st =
 
 
 let nabla t (x,y) =
-    let dx2 = Grid.get t (x+1) y
-        -. 2.0 *. Grid.get t (x) y
-        +. Grid.get t (x-1) y
+    let get = Grid.get t ~default:0.5 in
+    let dx2 = get (x+1) y
+        -. 2.0 *. get (x) y
+        +. get (x-1) y
     in
-    let dy2 = Grid.get t x (y+1)
-        -. 2.0 *. Grid.get t x (y)
-        +. Grid.get t x (y-1)
+    let dy2 = get x (y+1)
+        -. 2.0 *. get x (y)
+        +. get x (y-1)
     in dx2 /. (dx**2.0) +. dy2 /. (dy**2.0)
 
 let clamp v l t =
@@ -41,7 +42,6 @@ let dist (x1,y1) (x2,y2) = (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)
 
 let update {t;time} =
     let t' = Grid.mapi (fun pos v ->
-        let vois_values = Grid.vois_value pos t in
         c *. dt *. (nabla t pos) *. dt +. v
     ) t
     in
@@ -50,7 +50,6 @@ let update {t;time} =
         if d < rcercle then
             Grid.set t' x y ((1.0 +. cos time) /. 2.0)
     ) t;
-    (*(1.0 +. cos time) /. 2.0*)
 
     let time' = time +. 0.01 in
     {t = t'; time = time'}
